@@ -11,10 +11,13 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class RestaurantResponse {
-    String name;
-    String location;
-    String contactNo;
-    boolean opened;
-    List<MenuResponse> menu;
+public class CartStatusResponse {
+    String CustomerName;
+    String CustomerMobile;
+    String Address;
+    int Total;
+
+    List<FoodResponse> foodList;
+    String RestaurantName;
+
 }
