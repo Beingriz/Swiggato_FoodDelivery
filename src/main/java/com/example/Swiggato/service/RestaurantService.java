@@ -1,11 +1,15 @@
 package com.example.Swiggato.service;
 
+import com.example.Swiggato.dto.request.FoodRequest;
 import com.example.Swiggato.dto.request.RestaurantRequest;
 import com.example.Swiggato.dto.response.RestaurantResponse;
 import com.example.Swiggato.exception.RestaurantNotFoundException;
+import com.example.Swiggato.model.FoodItem;
 import com.example.Swiggato.model.Restaurant;
 import com.example.Swiggato.repisoory.RestaurantRepository;
+import com.example.Swiggato.transformer.FoodItemTransformer;
 import com.example.Swiggato.transformer.RestaurantTransformer;
+import com.example.Swiggato.utils.ValidateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +18,12 @@ import java.util.Optional;
 @Service
 public class RestaurantService {
     final RestaurantRepository restaurantRepository;
+    final ValidateUtils validateUtils;
     @Autowired
 
-    public RestaurantService(RestaurantRepository restaurantRepository) {
+    public RestaurantService(RestaurantRepository restaurantRepository, ValidateUtils validateUtils) {
         this.restaurantRepository = restaurantRepository;
+        this.validateUtils = validateUtils;
     }
 
     public RestaurantResponse addRestaurant(RestaurantRequest restaurantRequest) {
@@ -32,11 +38,10 @@ public class RestaurantService {
     }
 
     public String openOrCloseRestaurant(int id) {
-      Optional<Restaurant> restaurantOptional = restaurantRepository.findById(id);
-      if(restaurantOptional.isEmpty()){
+      if(!validateUtils.validateRestaurantId(id)){
           throw new RestaurantNotFoundException("Invalid Restaurant Id!");
       }
-      Restaurant restaurant = restaurantOptional.get();
+      Restaurant restaurant = restaurantRepository.findById(id).get();
       restaurant.setOpened(!restaurant.isOpened());
       restaurantRepository.save(restaurant);
 
@@ -44,5 +49,21 @@ public class RestaurantService {
           return " Retaurant is now Opend!..";
       }
       return " Restaurant is now Closed";
+    }
+
+    public RestaurantResponse addFoodItemtoRestaurant(FoodRequest foodRequest) throws RuntimeException {
+        // Check the Restaurant is valid or Not
+        if(!validateUtils.validateRestaurantId(foodRequest.getRestaurantId())){
+            throw new RestaurantNotFoundException("Invalid Restaurant Id!");
+        }
+        Restaurant restaurant = restaurantRepository.findById(foodRequest.getRestaurantId()).get();
+        FoodItem foodItem = FoodItemTransformer.foodRequestToFoodItem(foodRequest);
+        foodItem.setRestaurant(restaurant);
+        restaurant.getAvailableFoodItems().add(foodItem);
+        Restaurant savedRestaurant  = restaurantRepository.save(restaurant);
+
+        // Convert to Resposnse.
+        return RestaurantTransformer.restaurantToRestaurantResponse(restaurant);
+
     }
 }

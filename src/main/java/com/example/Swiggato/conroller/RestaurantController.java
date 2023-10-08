@@ -1,5 +1,6 @@
 package com.example.Swiggato.conroller;
 
+import com.example.Swiggato.dto.request.FoodRequest;
 import com.example.Swiggato.dto.request.RestaurantRequest;
 import com.example.Swiggato.dto.response.RestaurantResponse;
 import com.example.Swiggato.service.RestaurantService;
@@ -29,6 +30,17 @@ public class RestaurantController {
         }catch (Exception e){
             return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("/add/food-items")
+    public ResponseEntity addFoodItemtoRestaurant(@RequestBody FoodRequest foodRequest){
+        try {
+            RestaurantResponse restaurantResponse = restaurantService.addFoodItemtoRestaurant(foodRequest);
+            return new ResponseEntity<>(restaurantResponse,HttpStatus.CREATED);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+
 
     }
 }
